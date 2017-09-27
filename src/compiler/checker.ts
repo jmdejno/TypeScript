@@ -6251,13 +6251,11 @@ namespace ts {
 
         function symbolsToArray(symbols: SymbolTable): Symbol[] {
             const result: Symbol[] = [];
-            if (symbols) {
-                symbols.forEach((symbol, id) => {
-                    if (!isReservedMemberName(id)) {
-                        result.push(symbol);
-                    }
-                });
-            }
+            symbols.forEach((symbol, id) => {
+                if (!isReservedMemberName(id)) {
+                    result.push(symbol);
+                }
+            });
             return result;
         }
 
