@@ -228,8 +228,8 @@ namespace ts {
         getEncodedSemanticClassifications(fileName: string, span: TextSpan): Classifications;
 
         getCompletionsAtPosition(fileName: string, position: number): CompletionInfo;
-        //We should probably not take formatting options here.
-        getCompletionEntryDetails(fileName: string, position: number, entryName: string, formattingOptions?: FormatCodeSettings): CompletionEntryDetails;
+        //todo: mark `formattingOptions` as optional for back-compat?
+        getCompletionEntryDetails(fileName: string, position: number, entryName: string, options: FormatCodeOptions | FormatCodeSettings): CompletionEntryDetails;
         getCompletionEntrySymbol(fileName: string, position: number, entryName: string): Symbol;
 
         getQuickInfoAtPosition(fileName: string, position: number): QuickInfo;

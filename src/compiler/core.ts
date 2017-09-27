@@ -1128,9 +1128,8 @@ namespace ts {
         return result;
     }
 
-    //!
     export function arrayToNumericMap<T>(array: ReadonlyArray<T>, makeKey: (value: T) => number): T[] {
-        const result = [];
+        const result: T[] = [];
         for (const value of array) {
             result[makeKey(value)] = value;
         }
