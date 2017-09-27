@@ -5,6 +5,8 @@ namespace ts.Completions {
     export type Log = (message: string) => void;
 
     export type SymbolOriginInfo = { moduleSymbol: Symbol, isDefaultExport?: boolean };
+    // Sparse array, mapping symbol id -> SymbolOriginInfo
+    export type SymbolOriginInfoMap = SymbolOriginInfo[];
 
     const enum KeywordCompletionFilters {
         None,
@@ -153,7 +155,7 @@ namespace ts.Completions {
         target: ScriptTarget,
         log: Log,
         allowStringLiteral: boolean,
-        symbolToOriginInfoMap?: Map<SymbolOriginInfo>,
+        symbolToOriginInfoMap?: SymbolOriginInfoMap,
     ): Map<true> {
         const start = timestamp();
         const uniqueNames = createMap<true>();
@@ -163,7 +165,7 @@ namespace ts.Completions {
                 if (entry) {
                     const id = entry.name;
                     if (!uniqueNames.has(id)) {
-                        if (symbolToOriginInfoMap && symbolToOriginInfoMap.has(getUniqueSymbolIdAsString(symbol, typeChecker))) {
+                        if (symbolToOriginInfoMap && symbolToOriginInfoMap[getUniqueSymbolId(symbol, typeChecker)]) {
                             entry.hasAction = true;
                         }
                         entries.push(entry);
@@ -347,7 +349,7 @@ namespace ts.Completions {
             if (symbol) {
                 let codeActions: CodeAction[];
                 if (host && rulesProvider) {
-                    const symbolOriginInfo = symbolToOriginInfoMap.get(getUniqueSymbolIdAsString(symbol, typeChecker));
+                    const symbolOriginInfo = symbolToOriginInfoMap[getUniqueSymbolId(symbol, typeChecker)];
                     if (symbolOriginInfo) {
                         const useCaseSensitiveFileNames = host.useCaseSensitiveFileNames ? host.useCaseSensitiveFileNames() : false;
                         const context: codefix.ImportCodeFixContext = {
@@ -430,7 +432,7 @@ namespace ts.Completions {
         isRightOfDot: boolean;
         request?: Request;
         keywordFilters: KeywordCompletionFilters;
-        symbolToOriginInfoMap: Map<SymbolOriginInfo>;
+        symbolToOriginInfoMap: SymbolOriginInfoMap;
     }
     type Request = { kind: "JsDocTagName" } | { kind: "JsDocTag" } | { kind: "JsDocParameterName", tag: JSDocParameterTag };
 
@@ -624,7 +626,7 @@ namespace ts.Completions {
         let isNewIdentifierLocation: boolean;
         let keywordFilters = KeywordCompletionFilters.None;
         let symbols: Symbol[] = [];
-        const symbolToOriginInfoMap = createMap<SymbolOriginInfo>();
+        const symbolToOriginInfoMap: SymbolOriginInfoMap = [];
 
         if (isRightOfDot) {
             getTypeScriptMemberSymbols();
@@ -921,16 +923,16 @@ namespace ts.Completions {
         function getSymbolsFromOtherSourceFileExports(knownSymbols: Symbol[], tokenText: string): Symbol[] {
             const otherSourceFileExports: Symbol[] = [];
             const tokenTextLowerCase = tokenText.toLowerCase();
-            const symbolIdMap = arrayToMap(knownSymbols, s => getUniqueSymbolIdAsString(s, typeChecker));
+            const symbolIdMap = arrayToNumericMap(knownSymbols, s => getUniqueSymbolId(s, typeChecker));
 
             eachOtherModuleSymbol(allSourceFiles, sourceFile, typeChecker, moduleSymbol => {
                 // check the default export
                 const defaultExport = typeChecker.tryGetMemberInModuleExports("default", moduleSymbol);
                 if (defaultExport) {
                     const localSymbol = getLocalSymbolForExportDefault(defaultExport);
-                    if (localSymbol && !symbolIdMap.has(getUniqueSymbolIdAsString(localSymbol, typeChecker)) && startsWith(localSymbol.name.toLowerCase(), tokenTextLowerCase)) {
+                    if (localSymbol && !symbolIdMap[getUniqueSymbolId(localSymbol, typeChecker)] && startsWith(localSymbol.name.toLowerCase(), tokenTextLowerCase)) {
                         otherSourceFileExports.push(localSymbol);
-                        symbolToOriginInfoMap.set(getUniqueSymbolIdAsString(localSymbol, typeChecker), { moduleSymbol, isDefaultExport: true });
+                        symbolToOriginInfoMap[getUniqueSymbolId(localSymbol, typeChecker)] = { moduleSymbol, isDefaultExport: true };
                     }
                 }
 
@@ -938,9 +940,9 @@ namespace ts.Completions {
                 const allExportedSymbols = typeChecker.getExportsOfModule(moduleSymbol);
                 if (allExportedSymbols) {
                     for (const exportedSymbol of allExportedSymbols) {
-                        if (exportedSymbol.name && !symbolIdMap.has(getUniqueSymbolIdAsString(exportedSymbol, typeChecker)) && startsWith(exportedSymbol.name.toLowerCase(), tokenTextLowerCase)) {
+                        if (exportedSymbol.name && !symbolIdMap[getUniqueSymbolId(exportedSymbol, typeChecker)] && startsWith(exportedSymbol.name.toLowerCase(), tokenTextLowerCase)) {
                             otherSourceFileExports.push(exportedSymbol);
-                            symbolToOriginInfoMap.set(getUniqueSymbolIdAsString(exportedSymbol, typeChecker), { moduleSymbol });
+                            symbolToOriginInfoMap[getUniqueSymbolId(exportedSymbol, typeChecker)] = { moduleSymbol };
                         }
                     }
                 }

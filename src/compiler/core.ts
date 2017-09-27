@@ -1128,6 +1128,15 @@ namespace ts {
         return result;
     }
 
+    //!
+    export function arrayToNumericMap<T>(array: ReadonlyArray<T>, makeKey: (value: T) => number): T[] {
+        const result = [];
+        for (const value of array) {
+            result[makeKey(value)] = value;
+        }
+        return result;
+    }
+
     /**
      * Creates a set from the elements of an array.
      *
