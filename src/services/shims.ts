@@ -898,7 +898,7 @@ namespace ts {
                 `getCompletionEntryDetails('${fileName}', ${position}, '${entryName}')`,
                 () => {
                     const localOptions: ts.FormatCodeOptions = JSON.parse(options);
-                    this.languageService.getCompletionEntryDetails(fileName, position, entryName, localOptions)
+                    this.languageService.getCompletionEntryDetails(fileName, position, entryName, localOptions);
                 }
             );
         }
