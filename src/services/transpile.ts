@@ -16,7 +16,7 @@ namespace ts {
 
     /*
      * This function will compile source text from 'input' argument using specified compiler options.
-     * If not options are provided - it will use a set of default compiler options.
+     * If no options are provided - it will use a set of default compiler options.
      * Extra compiler options that will unconditionally be used by this function are:
      * - isolatedModules = true
      * - allowNonTsExtensions = true
